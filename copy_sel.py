@@ -12,6 +12,7 @@ import re
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
+from gi.repository import Pango
 
 import terminatorlib.plugin as plugin
 from terminatorlib.translation import _
@@ -33,6 +34,7 @@ class CopySel(plugin.MenuItem):
         self.default_ps1_pattern = r'^[^\$\n]+?\$ '
         self.default_ps1_pattern = r'^([^\$\n]+?\$ )'
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        self.terminal = None
 
     def callback(self, menuitems, menu, terminal):
         """Add our menu items to the menu"""
@@ -74,6 +76,7 @@ class CopySel(plugin.MenuItem):
         # selected_text = self.get_selected_text(terminal)
         selected_text = self.get_selected_text2()
         print('=== sel:', selected_text)
+        self.terminal = terminal
         
         if not selected_text:
             dialog = Gtk.MessageDialog(
@@ -90,6 +93,23 @@ class CopySel(plugin.MenuItem):
         
         # Create processing window
         self.create_processing_window(selected_text)
+
+
+    def apply_vte_font_to_textview(self, terminal, textview):
+        """将 VTE 终端的字体设置应用到 Gtk.TextView"""
+        try:
+            vte_font = terminal.vte.get_font()
+            if vte_font:
+                textview.override_font(vte_font.copy())
+                return
+        except:
+            pass
+        
+        # 回退到等宽字体
+        font_desc = Pango.FontDescription()
+        font_desc.set_family("Monospace")
+        font_desc.set_size(10 * Pango.SCALE)  # 10pt
+        textview.override_font(font_desc)
 
     def create_processing_window(self, text):
         """Create a window with text processing options"""
@@ -158,6 +178,7 @@ class CopySel(plugin.MenuItem):
         self.text_buffer = self.text_view.get_buffer()
         self.text_buffer.set_text(text)
         scrolled_window.add(self.text_view)
+        self.apply_vte_font_to_textview(self.terminal, self.text_view)
         
         window.show_all()
         
