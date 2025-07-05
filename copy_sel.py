@@ -174,7 +174,8 @@ class CopySel(plugin.MenuItem):
         vbox.pack_start(scrolled_window, True, True, 0)
         
         self.text_view = Gtk.TextView()
-        self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
+        # self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.text_view.set_wrap_mode(Gtk.WrapMode.NONE)  # 禁用换行
         self.text_buffer = self.text_view.get_buffer()
         self.text_buffer.set_text(text)
         scrolled_window.add(self.text_view)
