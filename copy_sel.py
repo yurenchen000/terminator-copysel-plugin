@@ -131,9 +131,11 @@ class CopySel(plugin.MenuItem):
     def create_processing_window(self, text):
         """Create a window with text processing options"""
         #window = Gtk.Window(title="Process Terminal Text")
-        window = Gtk.Window(title="Copy Sel Text")
+        window = Gtk.Window(title="Copy Selected Text")
         window.set_default_size(600, 400)
         window.set_border_width(10)
+        window.connect("delete-event", lambda w, e: w.destroy())  # 关闭时触发: 直接销毁
+        # window.connect("delete-event", lambda w, e: print('==copy win close'))  # 关闭时触发
         self.window = window
         
         # Main container
