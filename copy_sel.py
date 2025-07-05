@@ -35,6 +35,7 @@ class CopySel(plugin.MenuItem):
         self.default_ps1_pattern = r'^([^\$\n]+?\$ )'
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         self.terminal = None
+        self.window = None
 
     def callback(self, menuitems, menu, terminal):
         """Add our menu items to the menu"""
@@ -95,6 +96,22 @@ class CopySel(plugin.MenuItem):
         self.create_processing_window(selected_text)
 
 
+    def set_win_size(self, terminal):
+        # 获取终端窗口的尺寸
+        alloc = terminal.get_allocation()
+        term_width = alloc.width
+        term_height = alloc.height
+        print('size:', term_width, term_height)
+
+        # 设置尺寸限制
+        max_width = 1000
+        max_height = 800
+        width = min(term_width, max_width)
+        height = min(term_height, max_height)
+
+        self.window.set_default_size(width, height)  # 设置窗口尺寸
+
+
     def apply_vte_font_to_textview(self, terminal, textview):
         """将 VTE 终端的字体设置应用到 Gtk.TextView"""
         try:
@@ -117,6 +134,7 @@ class CopySel(plugin.MenuItem):
         window = Gtk.Window(title="Copy Sel Text")
         window.set_default_size(600, 400)
         window.set_border_width(10)
+        self.window = window
         
         # Main container
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -131,7 +149,7 @@ class CopySel(plugin.MenuItem):
         
         self.pattern_entry = Gtk.Entry()
         self.pattern_entry.set_text(self.default_ps1_pattern)
-        self.pattern_entry.set_tooltip_text("Regular expression to match PS1 prompts")
+        self.pattern_entry.set_tooltip_text("RegEx to match PS1")
         pattern_hbox.pack_start(self.pattern_entry, True, True, 0)
         
         # Replacement input
@@ -145,7 +163,7 @@ class CopySel(plugin.MenuItem):
         self.replace_entry = Gtk.Entry()
         self.replace_entry.set_text("> ")
         self.replace_entry.set_text("$ ")
-        self.replace_entry.set_tooltip_text("Text to replace PS1 prompts with")
+        self.replace_entry.set_tooltip_text("Text to replace with")
         #replace_hbox.pack_start(self.replace_entry, True, True, 0)
         pattern_hbox.pack_start(self.replace_entry, True, True, 0)
         
@@ -180,6 +198,7 @@ class CopySel(plugin.MenuItem):
         self.text_buffer.set_text(text)
         scrolled_window.add(self.text_view)
         self.apply_vte_font_to_textview(self.terminal, self.text_view)
+        self.set_win_size(self.terminal)
         
         window.show_all()
         
