@@ -13,6 +13,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 from gi.repository import Pango
+from gi.repository import GLib
 
 import terminatorlib.plugin as plugin
 from terminatorlib.translation import _
@@ -187,6 +188,7 @@ class CopySel(plugin.MenuItem):
         copy_button = Gtk.Button(label="Copy")
         copy_button.connect("clicked", self.on_copy_clicked)
         button_box.pack_start(copy_button, True, True, 0)
+        self.copy_button = copy_button
         
         # Text view
         scrolled_window = Gtk.ScrolledWindow()
@@ -245,6 +247,20 @@ class CopySel(plugin.MenuItem):
         """Copy the current text to clipboard"""
         self.clipboard.set_text(self.current_text, -1)
         
+        self.copy_button.set_tooltip_text('copied!')
+        # 2秒后自动隐藏Tooltip
+        GLib.timeout_add(2000, lambda : self.copy_button.set_tooltip_text(''))
+        return
+
+        # 显示Tooltip提示
+        tooltip = Gtk.Tooltip()
+        tooltip.set_text("已复制到剪贴板")
+        # tooltip.show()
+
+        # 2秒后自动隐藏Tooltip
+        GLib.timeout_add(2000, tooltip.hide)
+        return
+
         dialog = Gtk.MessageDialog(
             transient_for=self.window,
             flags=0,
