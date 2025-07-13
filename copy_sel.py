@@ -177,17 +177,17 @@ class CopySel(plugin.MenuItem):
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         vbox.pack_start(button_box, False, False, 0)
         
-        #process_button = Gtk.Button(label="Process Text")
-        process_button = Gtk.Button(label="Replace")
-        process_button.connect("clicked", self.on_process_clicked)
-        # button_box.pack_start(process_button, True, True, 0)
-        button_box.pack_start(process_button, False, False, 0)
-        
         #original_button = Gtk.Button(label="Show Original")
         original_button = Gtk.Button(label="Original")
         original_button.connect("clicked", self.on_original_clicked)
         # button_box.pack_start(original_button, True, True, 0)
         button_box.pack_start(original_button, False, False, 0)
+        
+        #process_button = Gtk.Button(label="Process Text")
+        process_button = Gtk.Button(label="Replace")
+        process_button.connect("clicked", self.on_process_clicked)
+        # button_box.pack_start(process_button, True, True, 0)
+        button_box.pack_start(process_button, False, False, 0)
         
         #copy_button = Gtk.Button(label="Copy to Clipboard")
         # copy_button = Gtk.Button(label="Copy")
@@ -244,13 +244,21 @@ class CopySel(plugin.MenuItem):
         copy_button.set_state_flags(Gtk.StateFlags.FOCUSED, True)
         copy_button.queue_draw()
 
-        # def on_window_show(win):
-        #     copy_button.grab_focus()
+        def on_window_show(window):
+            window.present()
+            window.activate()
+            window.get_window().focus(Gdk.CURRENT_TIME)
+            copy_button.set_state_flags(Gtk.StateFlags.FOCUSED, True)
+            copy_button.grab_focus()
+            copy_button.queue_draw()
 
-        # window.connect("show", on_window_show)
+        window.connect("show", on_window_show)
 
         window.show_all()
         window.present()
+        window.activate()
+        window.get_window().focus(Gdk.CURRENT_TIME)
+
         # GLib.timeout_add(500, lambda: copy_button.grab_focus())
         GLib.timeout_add(500, lambda x: copy_button.grab_focus(),copy_button.queue_draw())
         
