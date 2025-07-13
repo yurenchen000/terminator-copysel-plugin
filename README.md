@@ -23,3 +23,10 @@ only tested with terminator 2.1.1+, on ubuntu 22 lts
 
 ![plugin_preview.png](https://i.imgur.com/ef0SXTU.png)
 
+<br>
+
+## Other Plugins
+
+[![related-repos](https://res.ez2.fun/svg/repos-terminator_plugin.svg)](https://github.com/yurenchen000/yurenchen000/blob/main/repos.md#terminator-plugins)
+
+
