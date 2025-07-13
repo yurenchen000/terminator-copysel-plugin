@@ -170,6 +170,11 @@ class CopySel(plugin.MenuItem):
         self.replace_entry.set_text("> ")
         self.replace_entry.set_text("$ ")
         self.replace_entry.set_tooltip_text("Text to replace with")
+
+        # color = Gdk.RGBA()
+        # color.parse("#999999")  # 浅灰色
+        # self.replace_entry.override_color(Gtk.StateFlags.NORMAL, color)
+
         #replace_hbox.pack_start(self.replace_entry, True, True, 0)
         pattern_hbox.pack_start(self.replace_entry, True, True, 0)
         
@@ -227,11 +232,11 @@ class CopySel(plugin.MenuItem):
         self.style_manager = GtkSource.StyleSchemeManager()
         self.add_scheme_combobox(button_box)
 
+        ### set scheme
         # scheme_id = 'classic'
-        scheme_id = 'oblivion'
-        scheme = self.style_manager.get_scheme(scheme_id)
-        self.source_buffer.set_style_scheme(scheme)
-
+        # scheme_id = 'oblivion'
+        # scheme = self.style_manager.get_scheme(scheme_id)
+        # self.source_buffer.set_style_scheme(scheme)
 
 
         copy_button.grab_focus()
@@ -283,9 +288,28 @@ class CopySel(plugin.MenuItem):
         renderer = Gtk.CellRendererText()
         scheme_combo.pack_start(renderer, True)
         scheme_combo.add_attribute(renderer, "text", 0)
-        scheme_combo.set_active(0)
+        # scheme_combo.set_active(0)
         scheme_combo.connect("changed", self.on_scheme_changed)
         
+        ## select pref
+        pref_scheme = ['not-found', 'oblivion', 'solarized-dark', 'cobalt', 'Yaru-dark']
+        def find_scheme(name):
+            for i,row in enumerate(scheme_store):
+                if row[1]==name: return i
+            return None
+
+        def select_pref(pref_scheme):
+            for scheme in pref_scheme:
+                i = find_scheme(scheme)
+                if i:
+                    print('--use pref scheme:', scheme)
+                    scheme_combo.set_active(i)
+                    return
+            # else:
+            scheme_combo.set_active(0)
+
+        select_pref(pref_scheme)
+
         # 添加到工具栏
         # scheme_label = Gtk.Label(label="配色")
         # scheme_label = Gtk.Label(label="配色")
