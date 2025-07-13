@@ -14,9 +14,12 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 from gi.repository import Pango
 from gi.repository import GLib
+from gi.repository import GtkSource
 
 import terminatorlib.plugin as plugin
 from terminatorlib.translation import _
+
+from test_sv_lang5A import ConsoleHighlighter
 
 # Every plugin you want Terminator to load *must* be listed in 'AVAILABLE'
 #AVAILABLE = ['ProcessSelectedText']
@@ -195,7 +198,16 @@ class CopySel(plugin.MenuItem):
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         vbox.pack_start(scrolled_window, True, True, 0)
         
-        self.text_view = Gtk.TextView()
+        ### A. textview
+        # self.text_view = Gtk.TextView()
+        ### B. sourceview
+        self.source_view = GtkSource.View()
+        self.source_view.set_show_line_numbers(True)
+        self.source_view.set_auto_indent(True)
+        self.source_view.set_highlight_current_line(True)
+        self.text_view = self.source_view
+        self.source_buffer = self.source_view.get_buffer()
+
         # self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
         self.text_view.set_wrap_mode(Gtk.WrapMode.NONE)  # 禁用换行
         self.text_buffer = self.text_view.get_buffer()
@@ -204,6 +216,16 @@ class CopySel(plugin.MenuItem):
         self.apply_vte_font_to_textview(self.terminal, self.text_view)
         self.set_win_size(self.terminal)
         
+
+        ## highlighter
+        self.highlighter = ConsoleHighlighter(self.text_buffer)
+        ## scheme
+        self.style_manager = GtkSource.StyleSchemeManager()
+        # scheme_id = 'classic'
+        scheme_id = 'oblivion'
+        scheme = self.style_manager.get_scheme(scheme_id)
+        self.source_buffer.set_style_scheme(scheme)
+
         window.show_all()
         
         # Store the original text
