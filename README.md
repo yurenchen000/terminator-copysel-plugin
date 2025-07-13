@@ -19,3 +19,7 @@ only tested with terminator 2.1.1+, on ubuntu 22 lts
 3. select text in terminal and click context-menu `CopySel`
 
 
+## Preview
+
+![plugin_preview.png](https://i.imgur.com/vr8b7fE.png)
+
