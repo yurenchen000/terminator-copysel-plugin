@@ -21,5 +21,5 @@ only tested with terminator 2.1.1+, on ubuntu 22 lts
 
 ## Preview
 
-![plugin_preview.png](https://i.imgur.com/vr8b7fE.png)
+![plugin_preview.png](https://i.imgur.com/ef0SXTU.png)
 
