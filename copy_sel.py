@@ -57,14 +57,14 @@ class CopySel(plugin.MenuItem):
         """直接获取 VTE 终端中选中的文本"""
         # 获取选中的文本范围
         (start_col, start_row), (end_col, end_row) = terminal.vte.get_selection()
-        
+
         # 获取选中范围内的文本
         selected_text = terminal.vte.get_text_range(
             start_row, start_col,
             end_row, end_col,
             lambda *args: None  # 不需要额外的过滤函数
         )
-        
+
         return selected_text
 
     def get_selected_text2(self):
@@ -82,7 +82,7 @@ class CopySel(plugin.MenuItem):
         selected_text = self.get_selected_text2()
         print('=== sel:', selected_text)
         self.terminal = terminal
-        
+
         if not selected_text:
             dialog = Gtk.MessageDialog(
                 transient_for=None,
@@ -95,7 +95,7 @@ class CopySel(plugin.MenuItem):
             dialog.run()
             dialog.destroy()
             return
-        
+
         # Create processing window
         self.create_processing_window(selected_text)
 
@@ -125,7 +125,7 @@ class CopySel(plugin.MenuItem):
                 return
         except:
             pass
-        
+
         # 回退到等宽字体
         font_desc = Pango.FontDescription()
         font_desc.set_family("Monospace")
@@ -141,31 +141,31 @@ class CopySel(plugin.MenuItem):
         window.connect("delete-event", lambda w, e: w.destroy())  # 关闭时触发: 直接销毁
         # window.connect("delete-event", lambda w, e: print('==copy win close'))  # 关闭时触发
         self.window = window
-        
+
         # Main container
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         window.add(vbox)
-        
+
         # Pattern input
         pattern_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         vbox.pack_start(pattern_hbox, False, False, 0)
-        
+
         pattern_label = Gtk.Label(label="PS1 Pattern:")
         #pattern_hbox.pack_start(pattern_label, False, False, 0)
-        
+
         self.pattern_entry = Gtk.Entry()
         self.pattern_entry.set_text(self.default_ps1_pattern)
         self.pattern_entry.set_tooltip_text("RegEx to match PS1")
         pattern_hbox.pack_start(self.pattern_entry, True, True, 0)
-        
+
         # Replacement input
         replace_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         vbox.pack_start(replace_hbox, False, False, 0)
-        
+
         replace_label = Gtk.Label(label="Replacement:")
         #replace_hbox.pack_start(replace_label, False, False, 0)
         #pattern_hbox.pack_start(replace_label, False, False, 0)
-        
+
         self.replace_entry = Gtk.Entry()
         self.replace_entry.set_text("> ")
         self.replace_entry.set_text("$ ")
@@ -177,23 +177,23 @@ class CopySel(plugin.MenuItem):
 
         #replace_hbox.pack_start(self.replace_entry, True, True, 0)
         pattern_hbox.pack_start(self.replace_entry, True, True, 0)
-        
+
         # Button box
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         vbox.pack_start(button_box, False, False, 0)
-        
+
         #original_button = Gtk.Button(label="Show Original")
         original_button = Gtk.Button(label="Original")
         original_button.connect("clicked", self.on_original_clicked)
         # button_box.pack_start(original_button, True, True, 0)
         button_box.pack_start(original_button, False, False, 0)
-        
+
         #process_button = Gtk.Button(label="Process Text")
         process_button = Gtk.Button(label="Replace")
         process_button.connect("clicked", self.on_process_clicked)
         # button_box.pack_start(process_button, True, True, 0)
         button_box.pack_start(process_button, False, False, 0)
-        
+
         #copy_button = Gtk.Button(label="Copy to Clipboard")
         # copy_button = Gtk.Button(label="Copy")
         copy_button = Gtk.Button(label="   Copy   ")
@@ -201,12 +201,12 @@ class CopySel(plugin.MenuItem):
         # button_box.pack_start(copy_button, True, True, 0)
         button_box.pack_start(copy_button, False, False, 0)
         self.copy_button = copy_button
-        
+
         # Text view
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         vbox.pack_start(scrolled_window, True, True, 0)
-        
+
         ### A. textview
         # self.text_view = Gtk.TextView()
         ### B. sourceview
@@ -224,7 +224,7 @@ class CopySel(plugin.MenuItem):
         scrolled_window.add(self.text_view)
         self.apply_vte_font_to_textview(self.terminal, self.text_view)
         self.set_win_size(self.terminal)
-        
+
 
         ## highlighter
         self.highlighter = ConsoleHighlighter(self.text_buffer)
@@ -266,7 +266,7 @@ class CopySel(plugin.MenuItem):
 
         # GLib.timeout_add(500, lambda: copy_button.grab_focus())
         GLib.timeout_add(500, lambda x: copy_button.grab_focus(),copy_button.queue_draw())
-        
+
         # Store the original text
         self.original_text = text
         self.current_text = text
@@ -278,19 +278,19 @@ class CopySel(plugin.MenuItem):
         # 创建配色方案选择组合框
         scheme_store = Gtk.ListStore(str, str)  # 第一列是显示名称，第二列是方案ID
         schemes = self.style_manager.get_scheme_ids()
-        
+
         # 添加所有配色方案
         for scheme_id in schemes:
             scheme = self.style_manager.get_scheme(scheme_id)
             scheme_store.append([scheme.get_name(), scheme_id])
-        
+
         scheme_combo = Gtk.ComboBox.new_with_model(scheme_store)
         renderer = Gtk.CellRendererText()
         scheme_combo.pack_start(renderer, True)
         scheme_combo.add_attribute(renderer, "text", 0)
         # scheme_combo.set_active(0)
         scheme_combo.connect("changed", self.on_scheme_changed)
-        
+
         ## select pref
         pref_scheme = ['not-found', 'oblivion', 'solarized-dark', 'cobalt', 'Yaru-dark']
         def find_scheme(name):
@@ -348,7 +348,7 @@ class CopySel(plugin.MenuItem):
         """Process the text with the given pattern and replacement"""
         pattern = self.pattern_entry.get_text()
         replacement = self.replace_entry.get_text()
-        
+
         print('--pattern:', pattern)
         try:
             #processed_text = re.sub(pattern, replacement, self.original_text)
@@ -377,7 +377,7 @@ class CopySel(plugin.MenuItem):
     def on_copy_clicked(self, button):
         """Copy the current text to clipboard"""
         self.clipboard.set_text(self.current_text, -1)
-        
+
         self.copy_button.set_tooltip_text('copied!')
         # 2秒后自动隐藏Tooltip
         GLib.timeout_add(2000, lambda : self.copy_button.set_tooltip_text(''))
@@ -421,11 +421,11 @@ class ConsoleHighlighter:
 
     def setup_tags(self):
         scheme = self.buffer.get_style_scheme()
-        
+
         def get_style_color(style_id, fallback):
             style = scheme.get_style(style_id) if scheme else None
             return style.get_property("foreground") if style and style.get_property("foreground") else fallback
-        
+
         # 使用映射的样式
         prompt_fg = get_style_color(self.style_mapping["prompt"], "#FF0000")
         command_fg = get_style_color(self.style_mapping["command"], "#00FFFF")
@@ -451,23 +451,23 @@ class ConsoleHighlighter:
 
     def on_text_changed(self, buffer):
         buffer.remove_all_tags(buffer.get_start_iter(), buffer.get_end_iter())
-        
+
         start = buffer.get_start_iter()
         end = buffer.get_end_iter()
         text = buffer.get_text(start, end, False)
-        
+
         lines = text.split('\n')
         offset = 0
-        
+
         for line in lines:
             line_length = len(line)
             if line_length == 0:
                 offset += 1
                 continue
-                
+
             start_iter = buffer.get_iter_at_offset(offset)
             end_iter = buffer.get_iter_at_offset(offset + line_length)
-            
+
             if line.startswith(('$', '#')):
                 prompt_end = buffer.get_iter_at_offset(offset + 1)
                 buffer.apply_tag_by_name("prompt", start_iter, prompt_end)
@@ -475,7 +475,7 @@ class ConsoleHighlighter:
                     buffer.apply_tag_by_name("command", prompt_end, end_iter)
             else:
                 buffer.apply_tag_by_name("normal", start_iter, end_iter)
-            
+
             offset += line_length + 1
 
     def set_style_mapping(self, tag_type, style_id):
