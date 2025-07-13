@@ -25,6 +25,8 @@ from terminatorlib.translation import _
 #AVAILABLE = ['ProcessSelectedText']
 AVAILABLE = ['CopySel']
 
+pref_scheme = ['oblivion', 'solarized-dark', 'cobalt', 'Yaru-dark']
+
 #class ProcessSelectedText(plugin.MenuItem):
 class CopySel(plugin.MenuItem):
     """Add custom commands to the terminal menu"""
@@ -292,7 +294,6 @@ class CopySel(plugin.MenuItem):
         scheme_combo.connect("changed", self.on_scheme_changed)
 
         ## select pref
-        pref_scheme = ['not-found', 'oblivion', 'solarized-dark', 'cobalt', 'Yaru-dark']
         def find_scheme(name):
             for i,row in enumerate(scheme_store):
                 if row[1]==name: return i
@@ -390,25 +391,14 @@ class CopySel(plugin.MenuItem):
 
         # 2秒后自动隐藏Tooltip
         GLib.timeout_add(2000, tooltip.hide)
-        return
-
-        dialog = Gtk.MessageDialog(
-            transient_for=self.window,
-            flags=0,
-            message_type=Gtk.MessageType.INFO,
-            buttons=Gtk.ButtonsType.OK,
-            text="Text copied to clipboard"
-        )
-        dialog.run()
-        dialog.destroy()
 
 class ConsoleHighlighter:
     def __init__(self, buffer):
         # 存储样式关联
         self.style_mapping = {
-            "prompt": "def:special-char",
+            "prompt" : "def:special-char",
             "command": "def:string",
-            "normal": "def:comment"
+            "normal" : "def:comment"
         }
         self.buffer = buffer
         self.setup_tags()
@@ -427,9 +417,9 @@ class ConsoleHighlighter:
             return style.get_property("foreground") if style and style.get_property("foreground") else fallback
 
         # 使用映射的样式
-        prompt_fg = get_style_color(self.style_mapping["prompt"], "#FF0000")
+        prompt_fg  = get_style_color(self.style_mapping["prompt"],  "#FF0000")
         command_fg = get_style_color(self.style_mapping["command"], "#00FFFF")
-        normal_fg = get_style_color(self.style_mapping["normal"], "#666666")
+        normal_fg  = get_style_color(self.style_mapping["normal"],  "#666666")
 
         # 清除旧标签
         table = self.buffer.get_tag_table()
@@ -441,8 +431,8 @@ class ConsoleHighlighter:
         print('==tag map:', self.style_mapping)
         # 创建新标签
         # self.buffer.create_tag("prompt", foreground=prompt_fg, weight=Pango.Weight.BOLD)
-        self.buffer.create_tag("prompt", foreground=prompt_fg)
         # self.buffer.create_tag("prompt", background=prompt_fg, weight=Pango.Weight.BOLD)
+        self.buffer.create_tag("prompt", foreground=prompt_fg)
         self.buffer.create_tag("command", foreground=command_fg)
         self.buffer.create_tag("normal", foreground=normal_fg)
 
