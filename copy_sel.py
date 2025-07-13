@@ -180,17 +180,21 @@ class CopySel(plugin.MenuItem):
         #process_button = Gtk.Button(label="Process Text")
         process_button = Gtk.Button(label="Replace")
         process_button.connect("clicked", self.on_process_clicked)
-        button_box.pack_start(process_button, True, True, 0)
+        # button_box.pack_start(process_button, True, True, 0)
+        button_box.pack_start(process_button, False, False, 0)
         
         #original_button = Gtk.Button(label="Show Original")
         original_button = Gtk.Button(label="Original")
         original_button.connect("clicked", self.on_original_clicked)
-        button_box.pack_start(original_button, True, True, 0)
+        # button_box.pack_start(original_button, True, True, 0)
+        button_box.pack_start(original_button, False, False, 0)
         
         #copy_button = Gtk.Button(label="Copy to Clipboard")
-        copy_button = Gtk.Button(label="Copy")
+        # copy_button = Gtk.Button(label="Copy")
+        copy_button = Gtk.Button(label="   Copy   ")
         copy_button.connect("clicked", self.on_copy_clicked)
-        button_box.pack_start(copy_button, True, True, 0)
+        # button_box.pack_start(copy_button, True, True, 0)
+        button_box.pack_start(copy_button, False, False, 0)
         self.copy_button = copy_button
         
         # Text view
@@ -221,19 +225,92 @@ class CopySel(plugin.MenuItem):
         self.highlighter = ConsoleHighlighter(self.text_buffer)
         ## scheme
         self.style_manager = GtkSource.StyleSchemeManager()
+        self.add_scheme_combobox(button_box)
+
         # scheme_id = 'classic'
         scheme_id = 'oblivion'
         scheme = self.style_manager.get_scheme(scheme_id)
         self.source_buffer.set_style_scheme(scheme)
 
+
+
+        copy_button.grab_focus()
+        copy_button.set_receives_default(True)
+        # copy_button.set_can_focus(False)
+        copy_button.set_can_default(True)
+        copy_button.set_can_focus(True)
+        window.set_default(copy_button)
+        copy_button.grab_focus()
+        copy_button.set_state_flags(Gtk.StateFlags.FOCUSED, True)
+        copy_button.queue_draw()
+
+        # def on_window_show(win):
+        #     copy_button.grab_focus()
+
+        # window.connect("show", on_window_show)
+
         window.show_all()
+        window.present()
+        # GLib.timeout_add(500, lambda: copy_button.grab_focus())
+        GLib.timeout_add(500, lambda x: copy_button.grab_focus(),copy_button.queue_draw())
         
         # Store the original text
         self.original_text = text
         self.current_text = text
         self.window = window
-
         self.on_process_clicked(None)
+
+
+    def add_scheme_combobox(self, tool_hbox):
+        # 创建配色方案选择组合框
+        scheme_store = Gtk.ListStore(str, str)  # 第一列是显示名称，第二列是方案ID
+        schemes = self.style_manager.get_scheme_ids()
+        
+        # 添加所有配色方案
+        for scheme_id in schemes:
+            scheme = self.style_manager.get_scheme(scheme_id)
+            scheme_store.append([scheme.get_name(), scheme_id])
+        
+        scheme_combo = Gtk.ComboBox.new_with_model(scheme_store)
+        renderer = Gtk.CellRendererText()
+        scheme_combo.pack_start(renderer, True)
+        scheme_combo.add_attribute(renderer, "text", 0)
+        scheme_combo.set_active(0)
+        scheme_combo.connect("changed", self.on_scheme_changed)
+        
+        # 添加到工具栏
+        # scheme_label = Gtk.Label(label="配色")
+        # scheme_label = Gtk.Label(label="配色")
+        # scheme_label = Gtk.Label(label="")
+        scheme_label = Gtk.Box(hexpand=True)
+
+        # tool_hbox.pack_start(scheme_label, False, False, 0)
+        tool_hbox.pack_start(scheme_label, True, False, 0)
+        # tool_hbox.pack_start(scheme_label, True, True, 0)
+
+        # tool_hbox.pack_start(Gtk.Label(label="配色:"), False, False, 0)
+        tool_hbox.pack_start(scheme_combo, False, False, 0)
+        # tool_hbox.pack_start(scheme_combo, False, False, 10)
+        # tool_hbox.pack_start(scheme_combo, True, False, 10)
+        # tool_hbox.pack_start(scheme_combo, False, True, 10)
+        # tool_hbox.pack_start(scheme_combo, True, True, 10)
+        # tool_hbox.pack_end(Gtk.Label(label="配色:"), False, False, 0)
+        # tool_hbox.pack_end(scheme_combo, False, False, 0)
+
+        # tool_hbox.reorder_child(scheme_label, 0)
+        # tool_hbox.reorder_child(scheme_combo, 1)
+
+        tool_hbox.reorder_child(scheme_combo, 0)
+        tool_hbox.reorder_child(scheme_label, 1)
+
+    def on_scheme_changed(self, combo):
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            scheme_id = model[tree_iter][1]
+            scheme = self.style_manager.get_scheme(scheme_id)
+            print('---scheme change:', scheme_id, scheme)
+            self.source_buffer.set_style_scheme(scheme)
 
     def on_process_clicked(self, button):
         """Process the text with the given pattern and replacement"""
