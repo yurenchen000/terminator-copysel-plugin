@@ -19,7 +19,7 @@ from gi.repository import GtkSource
 import terminatorlib.plugin as plugin
 from terminatorlib.translation import _
 
-from test_sv_lang5A import ConsoleHighlighter
+# from test_sv_lang5A import ConsoleHighlighter
 
 # Every plugin you want Terminator to load *must* be listed in 'AVAILABLE'
 #AVAILABLE = ['ProcessSelectedText']
@@ -402,3 +402,84 @@ class CopySel(plugin.MenuItem):
         dialog.run()
         dialog.destroy()
 
+class ConsoleHighlighter:
+    def __init__(self, buffer):
+        # 存储样式关联
+        self.style_mapping = {
+            "prompt": "def:special-char",
+            "command": "def:string",
+            "normal": "def:comment"
+        }
+        self.buffer = buffer
+        self.setup_tags()
+        self.connect_signals()
+        self.buffer.connect("notify::style-scheme", self.on_scheme_changed)
+
+    def on_scheme_changed(self, buffer, pspec):
+        self.setup_tags()
+        self.on_text_changed(buffer)
+
+    def setup_tags(self):
+        scheme = self.buffer.get_style_scheme()
+        
+        def get_style_color(style_id, fallback):
+            style = scheme.get_style(style_id) if scheme else None
+            return style.get_property("foreground") if style and style.get_property("foreground") else fallback
+        
+        # 使用映射的样式
+        prompt_fg = get_style_color(self.style_mapping["prompt"], "#FF0000")
+        command_fg = get_style_color(self.style_mapping["command"], "#00FFFF")
+        normal_fg = get_style_color(self.style_mapping["normal"], "#666666")
+
+        # 清除旧标签
+        table = self.buffer.get_tag_table()
+        for tag_name in ["prompt", "command", "normal"]:
+            tag = table.lookup(tag_name)
+            if tag:
+                table.remove(tag)
+
+        print('==tag map:', self.style_mapping)
+        # 创建新标签
+        # self.buffer.create_tag("prompt", foreground=prompt_fg, weight=Pango.Weight.BOLD)
+        self.buffer.create_tag("prompt", foreground=prompt_fg)
+        # self.buffer.create_tag("prompt", background=prompt_fg, weight=Pango.Weight.BOLD)
+        self.buffer.create_tag("command", foreground=command_fg)
+        self.buffer.create_tag("normal", foreground=normal_fg)
+
+    def connect_signals(self):
+        self.buffer.connect("changed", self.on_text_changed)
+
+    def on_text_changed(self, buffer):
+        buffer.remove_all_tags(buffer.get_start_iter(), buffer.get_end_iter())
+        
+        start = buffer.get_start_iter()
+        end = buffer.get_end_iter()
+        text = buffer.get_text(start, end, False)
+        
+        lines = text.split('\n')
+        offset = 0
+        
+        for line in lines:
+            line_length = len(line)
+            if line_length == 0:
+                offset += 1
+                continue
+                
+            start_iter = buffer.get_iter_at_offset(offset)
+            end_iter = buffer.get_iter_at_offset(offset + line_length)
+            
+            if line.startswith(('$', '#')):
+                prompt_end = buffer.get_iter_at_offset(offset + 1)
+                buffer.apply_tag_by_name("prompt", start_iter, prompt_end)
+                if line_length > 1:
+                    buffer.apply_tag_by_name("command", prompt_end, end_iter)
+            else:
+                buffer.apply_tag_by_name("normal", start_iter, end_iter)
+            
+            offset += line_length + 1
+
+    def set_style_mapping(self, tag_type, style_id):
+        """设置样式映射"""
+        self.style_mapping[tag_type] = style_id
+        self.setup_tags()
+        self.on_text_changed(self.buffer)
